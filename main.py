@@ -32,7 +32,29 @@ def tokenize(input_text):
 
 def parse_config(input_text):
     input_text = remove_comments(input_text)
-    print(tokenize((input_text)))
+    tokens = tokenize((input_text))
+    print(tokens)
+
+    arrays = [
+        {"name": [1, 2, 3]}
+    ]
+    consts = []
+    dicts = []
+
+    # TODO: Для список и словарей, обрабатывать их внутри и считать смещения, а потом прибовлять к i
+    for i in len(tokens):
+        if re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] != '{' \
+                and tokens[i + 2] != '([':
+            consts.append({tokens[i] : tokens[i + 2]})  # Добовляю константы
+            i += 3
+        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '{':
+            pass
+        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '([':
+            pass
+        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] != '{':
+            pass
+        # TODO: Понять Вычисление константы на этапе трансляции !(имя)
+
 
     # return yaml.safe_load(input_text)
 

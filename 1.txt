@@ -1,0 +1,11 @@
+\ Ffffffff
+name := 42
+conf := ([
+  "port" : 8080,
+  "host" : @"localhost",
+  "nested_config" : ([
+    "ip" : @"192.168.1.1",
+    "services" : { @"HTTP". @"FTP" }
+  ])
+])
+result := !(name)

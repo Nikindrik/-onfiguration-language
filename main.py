@@ -48,7 +48,26 @@ def parse_config(input_text):
             consts.append({tokens[i] : tokens[i + 2]})  # Добовляю константы
             i += 3
         elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '{':
-            pass
+            tmp_name = tokens[i]
+            shift_fot_i, count_arr_brackets, count_dicts_brackets = 3, 1, 0
+            tmp_arr = []
+            indx_in = 0  # Индекс вложенности для tmp_arr
+            # TODO: Продумать вложенность
+            for j in range(i + 3, len(tokens)):
+                if count_open_arr == 0:
+                    break
+                elif tokens[j] != '{' and tokens[j + 1] != '([' and tokens[j] != '}' and tokens[j + 1] != '])':
+                    tmp_arr.append(tokens[j])
+                elif tokens[j] == '{':
+                    count_arr_brackets += 1
+                elif tokens[j] == '}':
+                    count_arr_brackets -= 1
+                elif tokens[j] == '([':
+                    count_dicts_brackets += 1
+                elif tokens[j] == '])':
+                    count_dicts_brackets -= 1
+                shift_fot_i += 1
+            i += shift_fot_i
         elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '([':
             pass
         elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] != '{':

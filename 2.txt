@@ -1,0 +1,2 @@
+\ Ffffffff
+conf := {1. 3. 5. 6}

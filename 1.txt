@@ -8,4 +8,4 @@ conf := ([
     "services" : { @"HTTP". @"FTP" }
   ])
 ])
-result := !(name)
+!(name)

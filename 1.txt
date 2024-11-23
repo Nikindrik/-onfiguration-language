@@ -4,7 +4,7 @@ age := 30
 is_active := true
 
 \ Пример массива
-colors := { "red". "green". "blue" }
+colors := { @"red". @"green". @"blue" }
 
 \ Пример словаря
 user_info := ([

@@ -3,6 +3,7 @@ import re
 import sys
 import yaml
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file_path", type=str, help="Путь к файлу с конфигурацией")

@@ -1,103 +1,69 @@
 import argparse
-import yaml
 import re
+import sys
+import yaml
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file_path", type=str, help="Путь к файлу с конфигурацией")
+    return parser.parse_args()
 
-def remove_comments(input_text):
-    input_text = re.sub(r'\\.*$', '', input_text, flags=re.MULTILINE)  # Однострочные комментарии
-    input_text = re.sub(r'<!--.*?-->', '', input_text, flags=re.DOTALL)  # Многострочные комментарии
-    return input_text
+def read_input_file(input_file_path):
+    with open(input_file_path, "r", encoding="utf-8") as file:
+        return file.read()
 
+def remove_comments(input_data):
+    input_data = re.sub(r'\\.*', '', input_data)
+    input_data = re.sub(r'<!--.*?-->', '', input_data, flags=re.DOTALL)
+    return input_data
 
-def tokenize(input_text):
-    token_patterns = [
-        (r'(\()|\)', 'PARENTHESIS'),  # Скобки
-        (r'(\[\])|(\[)', 'BRACKETS'),  # Словари
-        (r'\{|\}', 'BRACES'),  # Массивы
-        (r'\:=', 'ASSIGN_OPERATOR'),  # :=
-        (r'!(\()', 'EXCLAMATION'),  # Вычисление констант....
-        (r'\"[^\"]*\"', 'STRING'),  # @"строка"
-        (r'[\d]+', 'NUMBER'),  # Числа
-        (r'[_a-zA-Z][_a-zA-Z0-9]*', 'IDENTIFIER'),  # Имена переменных
-        (r'\s+', 'WHITESPACE')  # Пробелы
-    ]
-    token_regex = '|'.join([f'(?P<{name}>{pattern})' for pattern, name in token_patterns])  # Составляем один общий шаблон для поиска всех токенов
-    tokens = []
-    for match in re.finditer(token_regex, input_text):
-        for name, group in match.groupdict().items():
-            if group and name != 'WHITESPACE':
-                tokens.append(group)
-    return tokens
+def parse_value(value, constants_dict):
+    if value.isdigit():
+        return int(value)
+    elif value == "true":
+        return True
+    elif value == "false":
+        return False
+    elif value.startswith('@"') and value.endswith('"'):
+        return value[2:-1]
+    elif value.startswith('!(') and value.endswith(')'):
+        const_name = value[2:-1]
+        return constants_dict.get(const_name, None)
+    elif value.startswith('{') and value.endswith('}'):
+        return [parse_value(v.strip(), constants_dict) for v in value[1:-1].split('.')]
+    elif value.startswith('([') and value.endswith('])'):
+        dict_content = value[2:-2]
+        return parse_dict(dict_content, constants_dict)
+    return value
 
+def parse_dict(input_data, constants_dict):
+    output = {}
+    items = re.findall(r'([a-zA-Z][_a-zA-Z0-9]*)\s*:\s*(.*?)\s*(?=,|\])', input_data)
+    for key, value in items:
+        output[key] = parse_value(value, constants_dict)
+    return output
 
-def parse_config(input_text):
-    input_text = remove_comments(input_text)
-    tokens = tokenize((input_text))
-    print(tokens)
+def parse_constants(input_data):
+    constants_dict = {}
+    matches = re.findall(r'([a-zA-Z][_a-zA-Z0-9]*)\s*:=\s*(.*?)\s*(?=\n|$)', input_data)
+    for name, value in matches:
+        constants_dict[name] = value.strip()
+    return constants_dict
 
-    arrays = [
-        {"name": [1, 2, 3]}
-    ]
-    consts = []
-    dicts = []
-
-    # TODO: Для список и словарей, обрабатывать их внутри и считать смещения, а потом прибовлять к i
-    for i in len(tokens):
-        if re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] != '{' \
-                and tokens[i + 2] != '([':
-            consts.append({tokens[i] : tokens[i + 2]})  # Добовляю константы
-            i += 3
-        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '{':
-            tmp_name = tokens[i]
-            shift_fot_i, count_arr_brackets, count_dicts_brackets = 3, 1, 0
-            tmp_arr = []
-            indx_in = 0  # Индекс вложенности для tmp_arr
-            # TODO: Продумать вложенность
-            for j in range(i + 3, len(tokens)):
-                if count_open_arr == 0:
-                    break
-                elif tokens[j] != '{' and tokens[j + 1] != '([' and tokens[j] != '}' and tokens[j + 1] != '])':
-                    tmp_arr.append(tokens[j])
-                elif tokens[j] == '{':
-                    count_arr_brackets += 1
-                elif tokens[j] == '}':
-                    count_arr_brackets -= 1
-                elif tokens[j] == '([':
-                    count_dicts_brackets += 1
-                elif tokens[j] == '])':
-                    count_dicts_brackets -= 1
-                shift_fot_i += 1
-            i += shift_fot_i
-        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] == '([':
-            pass
-        elif re.match(r'[_a-zA-Z][_a-zA-Z0-9]*', tokens[i]) and tokens[i + 1] == ':=' and tokens[i + 2] != '{':
-            pass
-        # TODO: Понять Вычисление константы на этапе трансляции !(имя)
-
-
-    # return yaml.safe_load(input_text)
-
+def convert_to_yaml(input_data, constants_dict):
+    config = parse_dict(input_data, constants_dict)
+    return yaml.dump(config, default_flow_style=False, allow_unicode=True)
 
 def main():
-    parser = argparse.ArgumentParser(description="Parser for a custom configuration language to YAML")
-    parser.add_argument("input_file", help="Path to the input .txt configuration file")
-    parser.add_argument("output_file", help="Path to the output YAML file")
-    args = parser.parse_args()
-
-    if not args.input_file.endswith(".txt"):
-        print("Error: Input file must have a .txt extension")
-        exit(1)
+    args = parse_args()
     try:
-        with open(args.input_file, "r") as infile:
-            input_text = infile.read()
-        parsed_data = parse_config(input_text)
-
-        with open(args.output_file, "w") as outfile:
-            yaml.dump(parsed_data, outfile, allow_unicode=True, default_flow_style=False)
-        print(f"Conversion completed. Output saved to {args.output_file}")
+        input_data = read_input_file(args.input_file_path)
+        input_data = remove_comments(input_data)
+        constants_dict = parse_constants(input_data)
+        yaml_data = convert_to_yaml(input_data, constants_dict)
+        print(yaml_data)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Ошибка: {e}", file=sys.stderr)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

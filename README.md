@@ -19,17 +19,16 @@ pip install pyyaml
 ```
 Run
 ```commandline
-python main.py <input.txt> <package_name> <output.yaml>   
+python main.py <input.txt>
 ```
 Example 
 ```editorconfig
-python main.py 1.txt output.yaml
+python main.py 1.txt
 ```
 
 # 💻 The command line switches are set: 
 
 * **Input <name.txt> file**
-* **Output <name.yaml> file**
 
 # 🖼️ Results Gallery
 

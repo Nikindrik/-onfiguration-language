@@ -1,11 +1,29 @@
-\ Ffffffff
-name := 42
-conf := ([
-  "port" : 8080,
-  "host" : @"localhost",
-  "nested_config" : ([
-    "ip" : @"192.168.1.1",
-    "services" : { @"HTTP". @"FTP" }
-  ])
+\ Это комментарий
+name := @"Имя пользователя"
+age := 30
+is_active := true
+
+\ Пример массива
+colors := { "red". "green". "blue" }
+
+\ Пример словаря
+user_info := ([
+  name : @"Nick",
+  age : 10,
+  active : true
 ])
-!(name)
+
+\ Многострочный комментарий
+<!--
+Это пример многострочного
+комментария
+-->
+
+key : "value"
+numbers : { 1. 2. 3. 4 }
+settings : ([
+  timeout : 300,
+  enabled : true
+])
+
+const_val := !(age)

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open
 import sys
-from main import parse_args, read_input_file, remove_comments, parse_value, parse_dict, parse_constants, convert_to_yaml
+from main import *
 
 
 class TestConfigurationParser(unittest.TestCase):

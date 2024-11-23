@@ -26,7 +26,7 @@ Example
 python main.py 1.txt output.yaml
 ```
 
-# 💻 The command line switches are set:
+# 💻 The command line switches are set: 
 
 * **Input <name.txt> file**
 * **Output <name.yaml> file**
